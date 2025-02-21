@@ -1,0 +1,23 @@
+# Ignore macOS system files
+.DS_Store
+
+# Ignore compiled files
+*.o
+*.pyc
+*.class
+
+# Ignore log and environment files
+*.log
+.env
+
+# Ignore node_modules (for JavaScript/TypeScript projects)
+node_modules/
+
+# Ignore build and cache folders
+build/
+dist/
+.cache/
+
+# Ignore personal editor configurations
+.vscode/
+.idea/
