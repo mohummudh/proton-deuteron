@@ -21,3 +21,5 @@ dist/
 # Ignore personal editor configurations
 .vscode/
 .idea/
+
+.gitattributes
