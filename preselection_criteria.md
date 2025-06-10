@@ -71,8 +71,8 @@ The preselected events are saved to CSV files containing run, subrun, and event 
 
 From the analysis of the mass distributions, the following observations were made:
 
-- The proton region (600-1600 MeV) shows clear separation from higher mass particles with 16935 picky+match events identified
-- The deuteron region (1600-2750 MeV) contains fewer events but represents the expected mass range for deuterons with 10029 total (no criteria) events identified
+- The proton region (600-1600 MeV) shows clear separation from higher mass particles with **16935** picky+match events identified
+- The deuteron region (1600-2750 MeV) contains fewer events but represents the expected mass range for deuterons with **10029** total (no criteria) events identified
 - The Picky+Match selection provides the highest purity for proton identification
 - For deuterons, a more inclusive approach is used due to lower statistics
 
