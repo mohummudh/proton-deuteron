@@ -10,7 +10,7 @@ This document describes the preselection criteria and methodology used to identi
 
 The analysis begins with a dataset containing picky and match selection flags along with beamline mass measurements:
 
-1. **Data Source**: `picky+match.csv` containing event-level information
+1. **Data Source**: `picky+match.csv` containing event-level information, this was created using `preselection.C` with `root`. 
 2. **Initial Filtering**: Events with `beamline_mass > 0` are retained to remove invalid measurements
 3. **Duplicate Removal**: The dataset is cleaned of any duplicate entries
 
