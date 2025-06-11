@@ -29,7 +29,6 @@ class Evd_display():
                 return False
             tree = root_file[tree_name]
             
-            # --- ✔️ MUST load raw_channel to map the wires correctly ---
             branches_to_load = ["raw_rawadc", "raw_channel"]
             self.all_events_df = tree.arrays(branches_to_load, library="pd")
             
@@ -51,7 +50,6 @@ class Evd_display():
         try:
             event_data = self.all_events_df.iloc[event_index]
             
-            # --- ✔️ The definitive, correct mapping logic ---
             adc_data = ak.to_numpy(event_data["raw_rawadc"])
             channel_map = ak.to_numpy(event_data["raw_channel"])
 
