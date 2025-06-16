@@ -24,4 +24,4 @@ dist/
 .tmp/
 .ipynb_checkpoints/
 
-.gitattributes
+.gitattributes.venv/
