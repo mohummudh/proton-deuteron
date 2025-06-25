@@ -7,6 +7,7 @@ def process_single_file(file_path, target_events_set):
     Processes a single ROOT file to find matching events.
     This function is designed to be run in a separate process.
     """
+
     try:
         with uproot.open(file_path) as file:
             if "ana/raw" not in file:
@@ -27,6 +28,7 @@ def process_single_file(file_path, target_events_set):
                         'event_index_in_file': idx,
                     })
             return found_matches
+        
     except Exception as e:
         print(f"Warning: Could not process file {file_path.name}: {e}")
         return []
