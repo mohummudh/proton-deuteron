@@ -76,6 +76,11 @@ print(f"Found {len(onetrackdf)} single-track events")
 - **16,935** high-purity proton candidates
 - **10,029** deuteron candidates
 
+## In Data
+
+- **16,624** events for protons -> one track cut -> 7636 proton candidate events
+- **9852** events for deuterons -> bounding box cut -> 6961 deuteron candidate events
+
 ## Current Results
 
 ### Event Statistics
