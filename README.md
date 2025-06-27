@@ -1,6 +1,6 @@
 # Proton-Deuteron Analysis
 
-Analysis of LArTPC data to identify and separate proton and deuteron particles based on beamline mass measurements and track reconstruction quality.
+Analysis of LArIAT data to identify and separate proton and deuteron particles based on beamline mass measurements and track reconstruction quality.
 
 ## What it does
 
