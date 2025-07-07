@@ -32,11 +32,16 @@ Analysis of LArIAT data to identify and separate proton and deuteron particles b
 - `notebooks/picky+match.ipynb` - Mass distribution analysis and particle selection
 - `notebooks/plots.ipynb` - Data visualization and quality plots
 - `notebooks/preselection.ipynb` - Initial data exploration
+- `notebooks/algo_clustering.ipynb` - LArIAT event clustering analysis with multiple algorithms
+- `notebooks/clusters_data.ipynb` - Cluster data extraction from connected regions
+- `notebooks/padded_data.ipynb` - Standardized 1D signals from cluster projections
+- `notebooks/cnn_autoencoder.ipynb` - CNN autoencoder for signal reconstruction and clustering
 
 ### Data
 - `LArTPC_Variables.csv` - Processed track reconstruction data
 - `preselection_criteria.md` - Detailed methodology documentation
 - `requirements.txt` - Python dependencies
+- `lariat/` - Core analysis modules with Event class and clustering algorithms
 
 ## Tools and Features
 
@@ -51,6 +56,8 @@ Analysis of LArIAT data to identify and separate proton and deuteron particles b
 - **Mass Cuts**: Beamline mass-based particle identification
 - **Event Matching**: Links track data with raw detector data
 - **Statistics**: Comprehensive event counting and validation
+- **Clustering Analysis**: Connected regions algorithm for particle track identification
+- **Machine Learning**: CNN autoencoder for signal reconstruction and anomaly detection
 
 ## Usage Examples
 
@@ -69,6 +76,12 @@ python scripts/eventdisplay.py
 import pandas as pd
 onetrackdf = pd.read_csv('onetrack_events.csv')
 print(f"Found {len(onetrackdf)} single-track events")
+
+
+# Analyze events with clustering
+from lariat import Event
+event = Event(filepath, index=0)
+labeled_regions, regions = event.clustering(algo='connected', plane='collection')
 ```
 
 ## Results
@@ -101,9 +114,10 @@ print(f"Found {len(onetrackdf)} single-track events")
 proton-deuteron/
 ├── scripts/           # Processing and visualization tools
 ├── notebooks/         # Analysis notebooks and data exploration
+├── lariat/           # Core analysis modules (Event class, clustering, SAM preparation)
 ├── data/             # Processed datasets (CSV format)
 ├── rawprotons/       # Raw ROOT files from detector
-└── event_displays/   # Generated event visualization images
+├── event_displays/   # Generated event visualization images
 ```
 
 ## Dependencies
@@ -120,6 +134,9 @@ Key packages:
 - `uproot` - ROOT file reading
 - `awkward` - Array processing
 - `tqdm` - Progress bars
+- `scikit-image` - Image processing for clustering
+- `torch` - PyTorch for deep learning models
+- `scikit-learn` - Machine learning utilities
 
 ## Development Notes
 
@@ -127,3 +144,6 @@ Key packages:
 - Supports parallel processing for large datasets
 - Event displays focus on collection plane for track visualization
 - Compatible with both interactive analysis and batch processing
+- Implements multiple clustering algorithms for particle track identification
+- Provides CNN autoencoder for signal reconstruction and anomaly detection
+- Includes comprehensive data preprocessing and normalization pipelines
