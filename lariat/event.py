@@ -11,15 +11,18 @@ from collections import deque
 
 class Event():
 
-    def __init__(self, filepath, index=0):
+    def __init__(self, filepath, index=0, threshold=1):
+
         self.filepath = filepath
         self.index = index
         self.collection = None
         self.induction = None
-        self.load()
 
-        self.connectedclr, self.connectedcr = self.connectedregions(self.collection)
-        self.connectedilr, self.connectedir = self.connectedregions(self.induction)
+        self.load()
+        self.plot()
+
+        self.connectedclr, self.connectedcr = self.connectedregions(self.collection, threshold)
+        self.connectedilr, self.connectedir = self.connectedregions(self.induction, threshold)
 
     def load(self):
         """
@@ -93,7 +96,7 @@ class Event():
         """Incorporate final clustering algorithm."""
         return
 
-    def connectedregions(self, matrix, threshold=10):
+    def connectedregions(self, matrix, threshold=10, verbose=False):
         """Find connected regions of signal above threshold"""
 
         # Create binary mask (matrix 240 x 3072) of significant signals.
@@ -103,7 +106,8 @@ class Event():
         # Label connected pixels
         labeled_regions, num_regions = label(binary_mask, return_num=True)
         
-        print(f"Found {num_regions} connected regions")
+        if verbose:
+            print(f"Found {num_regions} connected regions")
 
         if num_regions == 0:
             return None, None
@@ -286,12 +290,20 @@ class Event():
         
         return None, None
 
+    def direction(self, matrix, threshold=10):
+        
+        binary_mask = matrix > threshold
+
+
+        
+        return
+
     def visualiseclusters(self, matrix, regions, plane_name, mode="basic"):
         """Visualize clusters with different modes"""
         
         import matplotlib.patches as patches
 
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
         
         # Original heatmap
         sns.heatmap(matrix.T, cmap="viridis", ax=ax1, cbar_kws={'label': 'ADC Counts'})
