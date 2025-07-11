@@ -1,124 +1,78 @@
 # Proton-Deuteron Analysis
 
-Analysis of LArIAT data to identify and separate proton and deuteron particles based on beamline mass measurements and track reconstruction quality.
-
-## What it does
-
-- Processes experimental data from ROOT files containing raw detector data
-- Applies track reconstruction quality cuts (single-track events)
-- Identifies proton candidates (600-1600 MeV) with high purity selection
-- Identifies deuteron candidates (1600-2750 MeV) with inclusive selection
-- Generates event displays for visualization and validation
-- Creates datasets for further physics analysis
-
-## Workflow
-
-1. **Data Processing**: ROOT files → CSV with track information
-2. **Quality Selection**: Filter for single-track events only
-3. **Mass Selection**: Apply beamline mass cuts for particle identification
-4. **Event Display**: Generate collection plane heatmaps for selected events
-5. **Analysis**: Statistical analysis and validation
-
-## Key Files
-
-### Scripts
-- `scripts/preselection.C` - ROOT script for initial data processing and track counting
-- `scripts/savedisplay.py` - Command-line tool for batch event display generation
-- `scripts/eventdisplay.py` - Interactive GUI event display viewer
-- `scripts/to_parquet.py` - Data format conversion utilities
-
-### Notebooks
-- `notebooks/onetrack.ipynb` - Single-track event analysis and selection
-- `notebooks/picky+match.ipynb` - Mass distribution analysis and particle selection
-- `notebooks/plots.ipynb` - Data visualization and quality plots
-- `notebooks/preselection.ipynb` - Initial data exploration
-- `notebooks/algo_clustering.ipynb` - LArIAT event clustering analysis with multiple algorithms
-- `notebooks/clusters_data.ipynb` - Cluster data extraction from connected regions
-- `notebooks/padded_data.ipynb` - Standardized 1D signals from cluster projections
-- `notebooks/cnn_autoencoder.ipynb` - CNN autoencoder for signal reconstruction and clustering
-
-### Data
-- `LArTPC_Variables.csv` - Processed track reconstruction data
-- `preselection_criteria.md` - Detailed methodology documentation
-- `requirements.txt` - Python dependencies
-- `lariat/` - Core analysis modules with Event class and clustering algorithms
-
-## Tools and Features
-
-### Event Display System
-- **Interactive Viewer**: GUI-based tool for browsing events one by one
-- **Batch Generator**: Command-line tool for creating event displays en masse
-- **Collection Plane Focus**: Optimized for collection plane visualization
-- **Fast Search**: Parallel processing for efficient file searching
-
-### Data Selection Pipeline
-- **Track Quality**: Single-track events only for clean analysis
-- **Mass Cuts**: Beamline mass-based particle identification
-- **Event Matching**: Links track data with raw detector data
-- **Statistics**: Comprehensive event counting and validation
-- **Clustering Analysis**: Connected regions algorithm for particle track identification
-- **Machine Learning**: CNN autoencoder for signal reconstruction and anomaly detection
-
-## Usage Examples
-
-### Generate Event Displays
-```bash
-# Create displays for all single-track proton events
-python scripts/savedisplay.py onetrack_events.csv /path/to/raw/data event_displays/
-
-# Interactive event viewer
-python scripts/eventdisplay.py
-```
-
-### Data Analysis
-```python
-# Load and analyze single-track events
-import pandas as pd
-onetrackdf = pd.read_csv('onetrack_events.csv')
-print(f"Found {len(onetrackdf)} single-track events")
+Analysis of LArIAT data to identify and separate proton and deuteron particles. 
 
 
-# Analyze events with clustering
-from lariat import Event
-event = Event(filepath, index=0)
-labeled_regions, regions = event.clustering(algo='connected', plane='collection')
-```
+## History of work (still in works)
+
+- Beamline Mass cuts on LArIAT Run II Positive 100A (`picky+match.ipynb`)    
+    - Proton candidates -> 600-1600 MeV (**16,935**) // check numbers again from retreived data instead of Bruno's
+    - Deuteron candidates -> 1600-2750 MEV (**10,029**)
+    - These are then retrieved from Fermilab's GPVMs (raw + reco data).
+
+- Event displays to visually inspect data (`lariat/Event.py`, `event_class.ipynb`, implementation in other notebooks as well)
+
+- Another cut on protons, from reconstructed events, choose only those with no. of tracks = 1 (`onetrack.ipynb`, **7,636**).
+    - To identify characteristics that make these events "pure, golden samples", did exploratory data analysis. Plots in `plots.ipynb`
+    - Results on track length vs. momentum interesting as relationship breaks down around 80cm. Compare with theory in `NIST/Plot_Proton_Length.ipynb`
+
+*GROUPING TRACK PIXELS.*
+
+- Simple connectivity based clustering on protons performs well
+    - Identified where (a bounding box) the cleanest samples exhibit their track verticies. (`clustering_dev.ipynb`)
+    - Cut on deuteron candidates to choose only those events which have activity in the same region and > 100 ADC (down to **6,961**)
+
+- Other clustering algorithms developed to identify proton (`clustering_dev.ipynb` -> incorporated into `lariat/Event.py` class for ease of use). 
+    - Find longest (largest area cluster) particle (avoids small noise, doesn't work if muon in event)
+    - Find max ADC min:max ratio cluster (works robustly in events with protons, if event only has muons - no way to tell)
+    - Fix max ADC value in the event, search connected pixels from there (above a threshold = max // 5 [chosen by user, roughly based on empirical observation from dE/dx v. residual range plots])
+
+*LABELLING GROUPED TRACKS (to be able to identify signal (protons or deuteron present) / background (no p / d) events)*
+
+- Ran basic connectivity clustering (ADC threshold = 15) on all events (proton + deuteron candidates, with all the cuts described above), stored in DataFrames (`clusters_data.ipynb` -> total 438,575 clusters, lots of noise)
+    - Included 2D image of cluster
+    - Include 1D array of max ADC from each wire in each cluster (1x240) - a 1D representation of ADC change for each cluster (helpful representations shown in `event_stats.ipynb`, `padded_data.ipynb`)
+        - Protons/Deuterons expected to show steady increase (characteristic Bragg peaks)
+        - Muons, low baseline with lots of fluctuations due to delta ray emissions 
+        - These were prepped to be put through autoencoders for more intelligent clustering
+    - Padded data to make appropriate for autoencoders (`padded_data.ipynb`)
+        - Preserve original wire position of the cluster
+        - Experimenting with smoothing data to improve autoencoder performance (still in works, `padded_data.ipynb`)
+
+- Autoecoders 
+    - Learnt to make FFA autoencoder (`FFA_autoencoder.ipynb`, uses PyTorch)
+        - Okay reconstruction, huge errors on muons
+    - CNN autoencoder (`CNN_autoencoder.ipynb`)
+        - Improved architecture (mainly with the help of Claude, basic made by me), much better performance
+        - Tried clustering latent representation of the events, no conclusive results
+        - Struggles to differentiate between long protons/deuterons and muons. 
+        - Clustering performs better with smaller tracks.
+    - Improvements
+        - Need to make sure clusters are properly indexed so can find original event 
+        - Improve clustering somehow
+
+*IMPROVING GROUPING TRACKS (formally known as track reconstruction?)*
+
+- Incorporating direction into the clustering process
+    - Using graph representations (still in works, `direction.ipynb`)
+- Time matching between collection and induction plane (still in works, `time_matching.ipynb`)
+
+
+`data_explore.ipynb` looks at data structure of available data (ROOT, reco, raw, etc.)
+
+*WILD WILD WEST IDEAS*
+- Using Meta's Segment Anything (still not implemented properly, `SAM.ipynb`)
 
 ## Results
 
 - **16,935** high-purity proton candidates
 - **10,029** deuteron candidates
 
-## In Data
+## In Retrieved Data
 
-- **16,624** events for protons -> one track cut -> 7636 proton candidate events
-- **9852** events for deuterons -> bounding box cut -> 6961 deuteron candidate events
+- **16,624** events for protons -> one track cut -> **7636** proton candidate events
+- **9852** events for deuterons -> bounding box cut -> **6961** deuteron candidate events
 
-## Current Results
-
-### Event Statistics
-- **Total Events Processed**: From comprehensive ROOT file analysis
-- **Single-Track Events**: High-quality events with exactly one reconstructed track
-- **Proton Candidates**: Events with beamline mass 600-1600 MeV
-- **Deuteron Candidates**: Events with beamline mass 1600-2750 MeV
-
-### Data Quality
-- **Track Reconstruction**: Applied strict single-track requirements
-- **Event Display Validation**: Visual verification of detector response
-- **Mass Distribution**: Clean separation between particle types
-- **File Matching**: Successful linking of analysis data with raw detector files
-
-## Directory Structure
-
-```
-proton-deuteron/
-├── scripts/           # Processing and visualization tools
-├── notebooks/         # Analysis notebooks and data exploration
-├── lariat/           # Core analysis modules (Event class, clustering, SAM preparation)
-├── data/             # Processed datasets (CSV format)
-├── rawprotons/       # Raw ROOT files from detector
-├── event_displays/   # Generated event visualization images
-```
 
 ## Dependencies
 
@@ -126,24 +80,3 @@ Install required packages:
 ```bash
 pip install -r requirements.txt
 ```
-
-Key packages:
-- `pandas` - Data manipulation and analysis
-- `numpy` - Numerical computing
-- `matplotlib`, `seaborn` - Plotting and visualization
-- `uproot` - ROOT file reading
-- `awkward` - Array processing
-- `tqdm` - Progress bars
-- `scikit-image` - Image processing for clustering
-- `torch` - PyTorch for deep learning models
-- `scikit-learn` - Machine learning utilities
-
-## Development Notes
-
-- Optimized for LArIAT detector geometry (240 collection plane wires)
-- Supports parallel processing for large datasets
-- Event displays focus on collection plane for track visualization
-- Compatible with both interactive analysis and batch processing
-- Implements multiple clustering algorithms for particle track identification
-- Provides CNN autoencoder for signal reconstruction and anomaly detection
-- Includes comprehensive data preprocessing and normalization pipelines
