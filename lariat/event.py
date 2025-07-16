@@ -11,7 +11,7 @@ from collections import deque
 
 class Event():
 
-    def __init__(self, filepath, index=0, threshold=1):
+    def __init__(self, filepath, index=0, threshold=1, plot=True):
 
         self.filepath = filepath
         self.index = index
@@ -19,7 +19,9 @@ class Event():
         self.induction = None
 
         self.load()
-        self.plot()
+
+        if plot == True:
+            self.plot()
 
         self.connectedclr, self.connectedcr = self.connectedregions(self.collection, threshold)
         self.connectedilr, self.connectedir = self.connectedregions(self.induction, threshold)
@@ -91,6 +93,8 @@ class Event():
         ax2.set_ylabel("Time Tick")
         ax2.set_title("Induction Plane")
         ax2.invert_yaxis()
+
+        plt.show()
 
     def master(self, matrix, threshold=10):
         """Incorporate final clustering algorithm."""
