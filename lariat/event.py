@@ -15,6 +15,7 @@ class Event():
 
         self.filepath = filepath
         self.index = index
+        
         self.collection = None
         self.induction = None
 
