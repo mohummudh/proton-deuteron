@@ -25,7 +25,7 @@ class Event():
             self.plot()
 
         self.connectedclr, self.connectedcr = self.connectedregions(self.collection, threshold)
-        self.connectedilr, self.connectedir = self.connectedregions(self.induction, threshold)
+        self.connectedilr, self.connectedir = self.connectedregions(self.induction, threshold // 2)
 
     def load(self):
         """
