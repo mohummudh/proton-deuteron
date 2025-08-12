@@ -1,0 +1,26 @@
+////////////////////////////////////////////////////////////////////////
+// data_multi_pass_reco_bbox_100a.fcl
+//
+// Multi-pass reconstruction with bounding box filtering for 100A magnetic field
+// Based on data_multi_pass_reco_bbox.fcl with 100A B-field settings
+//
+// In JobConfigurations
+//
+////////////////////////////////////////////////////////////////////////
+
+#include "data_multi_pass_reco_bbox.fcl"
+
+# Override process name for 100A configuration
+process_name: RecoBBox100A
+
+# Override magnetic field settings for 100A
+physics.producers.wctrack.LoadBFieldFromDatabase:                 false
+physics.producers.wctrack.WCTrackBuilderAlg.BFieldInTesla:        0.3361 #.3361T for 100A .2121T for 60A
+physics.producers.wctrack.WCTrackBuilderAlg.MCMagneticFieldTesla: 0.3361
+
+# Override CSV file path to use full path (adjust as needed for your setup)
+physics.producers.bboxcaldata.CSVFile: "/exp/lariat/app/users/msultan/bbox/srcs/lariatsoft/LArIATRecoModule/bboxReco.csv"
+
+# Override output file names to include 100A identifier
+services.TFileService.fileName: "hist_bbox_100a_%p_%tc.root"
+outputs.out1.fileName: "%ifb_bbox_100a_%p_%tc.root"

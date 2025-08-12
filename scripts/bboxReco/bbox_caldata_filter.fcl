@@ -1,0 +1,32 @@
+////////////////////////////////////////////////////////////////////////
+// bbox_caldata_filter.fcl
+//
+// Configuration for BoundingBoxCalDataFilter module
+// This module filters calibrated wire data based on bounding boxes
+// defined in a CSV file on a per-event basis.
+//
+////////////////////////////////////////////////////////////////////////
+
+BEGIN_PROLOG
+
+lariat_bboxcaldatafilter: {
+  module_type: "BoundingBoxCalDataFilter"
+  CalDataModuleLabel: "caldata"     # Input calibrated data module
+  CSVFile: "bboxReco.csv"          # CSV file with bounding box definitions
+  ZeroOutside: true                # Set to true to zero data outside boxes, false to keep unchanged
+  DebugMode: false                 # Set to true for verbose debugging output
+}
+
+# Alternative configuration with debug enabled
+lariat_bboxcaldatafilter_debug: {
+  @table::lariat_bboxcaldatafilter
+  DebugMode: true
+}
+
+# Configuration that keeps data outside boxes (doesn't zero it)
+lariat_bboxcaldatafilter_keep: {
+  @table::lariat_bboxcaldatafilter
+  ZeroOutside: false
+}
+
+END_PROLOG

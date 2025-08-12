@@ -1,0 +1,37 @@
+////////////////////////////////////////////////////////////////////////
+// data_multi_pass_reco_bbox_debug.fcl
+//
+// Multi-pass reconstruction with bounding box filtering - DEBUG VERSION
+// Based on data_multi_pass_reco_bbox.fcl with debug output enabled
+//
+////////////////////////////////////////////////////////////////////////
+
+#include "data_multi_pass_reco_bbox.fcl"
+
+# Override process name for debug version
+process_name: RecoBBoxDebug
+
+# Enable debug mode for bounding box filter
+physics.producers.bboxcaldata.DebugMode: true
+
+# Reduce event count for debugging
+source.maxEvents: 10
+
+# Override output file names to include debug identifier
+services.TFileService.fileName: "hist_bbox_debug_%p_%tc.root"
+outputs.out1.fileName: "%ifb_bbox_debug_%p_%tc.root"
+
+# Enable more verbose messaging for debugging
+services.message: {
+  destinations: {
+    STDCOUT: {
+      categories: {
+        BoundingBoxCalDataFilter: { limit: -1 reportEvery: 1 }
+        BackTracker: { limit: 0  reportEvery: 0 }
+        ProjectionMatchingAlg: { limit: 0  reportEvery: 0 }
+      }
+      threshold: "INFO"
+      type: "cout"
+    }
+  }
+}
