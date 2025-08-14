@@ -3,7 +3,7 @@
   "img_w": 96,
   "feat_dim": 128,
   "global_max_adc": 2342.0,
-  "threshold": 0.0010076327016577125,
-  "percentile": 5,
+  "threshold": 0.00394054502248764,
+  "percentile": 90,
   "seed": 0
 }
