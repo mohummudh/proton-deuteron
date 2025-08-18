@@ -1,9 +1,9 @@
 {
-  "img_h": 240,
-  "img_w": 3072,
+  "img_h": 64,
+  "img_w": 96,
   "feat_dim": 128,
   "global_max_adc": 2342.0,
-  "threshold": 0.005227845162153244,
-  "percentile": 90,
+  "threshold": 0.013090284541249275,
+  "percentile": 80,
   "seed": 0
 }
