@@ -1,4 +1,4 @@
-# Proton-Deuteron Separation in LArIAT
+# Proton-Deuteron/Kaon Separation in LArIAT
 
 Numerical methods for identifying and separating proton and deuteron/kaon particles in the LArIAT (Liquid Argon In A Testbed) experiment, using signal processing, deep learning, and statistical hypothesis testing on raw TPC data from Run II Positive 100A.
 
