@@ -1,82 +1,123 @@
-# Proton-Deuteron Analysis
+# Proton-Deuteron Separation in LArIAT
 
-Analysis of LArIAT data to identify and separate proton and deuteron particles. 
+Numerical methods for identifying and separating proton and deuteron/kaon particles in the LArIAT (Liquid Argon In A Testbed) experiment, using signal processing, deep learning, and statistical hypothesis testing on raw TPC data from Run II Positive 100A.
 
+## Overview
 
-## History of work (still in works)
+The LArIAT TPC records particle interactions across 480 channels (240 induction + 240 collection plane wires) with 3,072 time ticks per event. Protons and deuterons are selected via beamline mass cuts, then distinguished from background (primarily muons) using track reconstruction, autoencoders, and chi-squared tests on ionisation signatures.
 
-- Beamline Mass cuts on LArIAT Run II Positive 100A (`picky+match.ipynb`)    
-    - Proton candidates -> 600-1600 MeV (**16,935**) // check numbers again from retreived data instead of Bruno's
-    - Deuteron candidates -> 1600-2750 MEV (**10,029**)
-    - These are then retrieved from Fermilab's GPVMs (raw + reco data).
+### Dataset
 
-- Event displays to visually inspect data (`lariat/Event.py`, `event_class.ipynb`, implementation in other notebooks as well)
+| Stage | Protons | Deuterons | Kaons |
+|---|---|---|---|
+| Beamline mass preselection | 16,935 (600–1600 MeV) | 10,029 (1600–2750 MeV) | ~3,420 (350–650 MeV) |
+| Retrieved from GPVM | 16,624 | 9,852 | — |
+| After quality cuts | 7,636 (one-track) | 6,961 (bounding box) | — |
 
-- Another cut on protons, from reconstructed events, choose only those with no. of tracks = 1 (`onetrack.ipynb`, **7,636**).
-    - To identify characteristics that make these events "pure, golden samples", did exploratory data analysis. Plots in `plots.ipynb`
-    - Results on track length vs. momentum interesting as relationship breaks down around 80cm. Compare with theory in `NIST/Plot_Proton_Length.ipynb`
+Preselection performed with `scripts/preselection.C` (ROOT macro). CSV lists in `cuts/`. Kaon selection disables the picky+match condition to increase statistics.
 
-*GROUPING TRACK PIXELS.*
+## Project Structure
 
-- Simple connectivity based clustering on protons performs well
-    - Identified where (a bounding box) the cleanest samples exhibit their track verticies. (`clustering_dev.ipynb`)
-    - Cut on deuteron candidates to choose only those events which have activity in the same region and > 100 ADC (down to **6,961**)
+```
+lariat/                  Core library — Event class for loading, clustering, visualising raw data
+├── event.py             Event loading from ROOT files, clustering algorithms, plotting
 
-- Other clustering algorithms developed to identify proton (`clustering_dev.ipynb` -> incorporated into `lariat/Event.py` class for ease of use). 
-    - Find longest (largest area cluster) particle (avoids small noise, doesn't work if muon in event)
-    - Find max ADC min:max ratio cluster (works robustly in events with protons, if event only has muons - no way to tell)
-    - Fix max ADC value in the event, search connected pixels from there (above a threshold = max // 5 [chosen by user, roughly based on empirical observation from dE/dx v. residual range plots])
+autoencoder/             Deep learning models for dimensionality reduction and separation
+├── vae.ipynb            Variational Autoencoder with Mahalanobis distance in latent space
+├── 1dCNN_autoencoder    1D CNN on per-wire ADC sequences
+├── 2dCNN.ipynb          2D CNN on collection plane images
+├── 2dCNNinduction.ipynb 2D CNN on induction plane images
+├── k-fold.ipynb         K-fold cross-validation
+├── latent.ipynb         Latent space analysis and visualisation
+├── separation.ipynb     Proton/deuteron separation in latent space
+├── anomaly.ipynb        Anomaly detection using reconstruction error
+├── GAN.ipynb            Generative adversarial network experiments
+└── hyperparameters.ipynb Hyperparameter tuning
 
-*LABELLING GROUPED TRACKS (to be able to identify signal (protons or deuteron present) / background (no p / d) events)*
+kaons/                   Multi-particle classification (protons, kaons, deuterons)
+├── chi2.ipynb           Chi-squared hypothesis testing with dE/dx vs residual range
+├── protons-kaons-vae    VAE for three-particle separation
+├── kaons_clustering     Kaon track clustering
+└── data.ipynb           Kaon data preparation
 
-- Ran basic connectivity clustering (ADC threshold = 15) on all events (proton + deuteron candidates, with all the cuts described above), stored in DataFrames (`clusters_data.ipynb` -> total 438,575 clusters, lots of noise)
-    - Included 2D image of cluster
-    - Include 1D array of max ADC from each wire in each cluster (1x240) - a 1D representation of ADC change for each cluster (helpful representations shown in `event_stats.ipynb`, `padded_data.ipynb`)
-        - Protons/Deuterons expected to show steady increase (characteristic Bragg peaks)
-        - Muons, low baseline with lots of fluctuations due to delta ray emissions 
-        - These were prepped to be put through autoencoders for more intelligent clustering
-    - Padded data to make appropriate for autoencoders (`padded_data.ipynb`)
-        - Preserve original wire position of the cluster
-        - Experimenting with smoothing data to improve autoencoder performance (still in works, `padded_data.ipynb`)
+clustering/              Track pixel grouping and signal extraction
+├── clustering_dev.ipynb Algorithm development (connectivity, max ADC, flood-fill)
+├── clusters_data.ipynb  Batch cluster extraction (438k+ clusters)
+├── event_stats.ipynb    Statistical properties of extracted tracks
+└── direction.ipynb      Direction-aware clustering with graph representations
 
-- Autoecoders 
-    - Learnt to make FFA autoencoder (`FFA_autoencoder.ipynb`, uses PyTorch)
-        - Okay reconstruction, huge errors on muons
-    - CNN autoencoder (`CNN_autoencoder.ipynb`)
-        - Improved architecture (mainly with the help of Claude, basic made by me), much better performance
-        - Tried clustering latent representation of the events, no conclusive results
-        - Struggles to differentiate between long protons/deuterons and muons. 
-        - Clustering performs better with smaller tracks.
-    - Improvements
-        - Need to make sure clusters are properly indexed so can find original event 
-        - Improve clustering somehow
+cuts/                    Event selection and filtering
+├── masscut.ipynb        Beamline mass filtering
+├── onetrack.ipynb       Single-track proton selection
+├── pickyprotons.ipynb   Picky reconstruction + matching
+├── pickydeuterons.ipynb Picky reconstruction for deuterons
+└── momentum_tof.ipynb   Momentum and time-of-flight analysis
 
-*IMPROVING GROUPING TRACKS (formally known as track reconstruction?)*
+analysis/                High-level results
+├── protons.ipynb        Proton characterisation
+├── deuterons.ipynb      Deuteron characterisation
+├── both.ipynb           Combined analysis
+└── separation_limit     Theoretical separation limits
 
-- Incorporating direction into the clustering process
-    - Using graph representations (still in works, `direction.ipynb`)
-- Time matching between collection and induction plane (still in works, `time_matching.ipynb`)
+notebooks/               Exploratory work
+├── chi2.ipynb           Chi-squared analysis (proton/deuteron)
+├── plots.ipynb          Exploratory data visualisation
+├── matching.ipynb       Collection/induction plane matching
+├── signalnoise.ipynb    Signal-to-noise studies
+├── SAM.ipynb            Meta Segment Anything experiments
+└── NIST/                Theory comparisons (track length vs momentum)
 
+ssvd/                    Sparse autoencoder experiments
+├── sparse.ipynb         Sparse autoencoder training
+├── inference.ipynb      Model inference and scoring
+└── cnn_model.onnx       Exported ONNX model
 
-`data_explore.ipynb` looks at data structure of available data (ROOT, reco, raw, etc.)
+scripts/                 Production tools
+├── preselection.C       ROOT macro for initial beamline mass cuts
+├── eventdisplay.py      Tkinter GUI for interactive event viewing
+├── group_particles.py   Dask-based parallel particle grouping
+├── to_parquet.py        CSV → Parquet conversion (DuckDB)
+└── bboxReco/            Custom LArIAT art module for bounding-box reconstruction
+```
 
-*WILD WILD WEST IDEAS*
-- Using Meta's Segment Anything (still not implemented properly, `SAM.ipynb`)
+## Methods
 
-## Results
+### 1. Track Clustering
 
-- **16,935** high-purity proton candidates
-- **10,029** deuteron candidates
+Four algorithms in `lariat/event.py` for grouping track pixels:
 
-## In Retrieved Data
+- **Connected regions** — binary mask above threshold, connected component labelling
+- **Longest cluster** — largest connected region by area (fails with muon contamination)
+- **Max ADC ratio** — cluster with highest max/min ADC ratio (robust for proton events)
+- **Flood-fill from max ADC** — BFS from peak ADC pixel, threshold = max/6 (most reliable)
 
-- **16,624** events for protons -> one track cut -> **7636** proton candidate events
-- **9852** events for deuterons -> bounding box cut -> **6961** deuteron candidate events
+### 2. Autoencoders
 
+Trained on padded cluster images (normalised 0–1) to learn compressed representations:
 
-## Dependencies
+- **Feedforward** — baseline, large reconstruction errors on muons
+- **1D CNN** — processes per-wire ADC as 1D sequences, improved over feedforward
+- **2D CNN** — operates on full wire×tick images, best reconstruction quality
+- **VAE** — variational autoencoder producing structured latent space; separation measured via Mahalanobis distance. Trained with MS-SSIM + VAE loss. Latent dimensions: 4–16
 
-Install required packages:
+### 3. Chi-Squared Particle ID
+
+Statistical hypothesis testing using reconstructed dE/dx vs residual range:
+
+- Computes chi-squared against proton, kaon, and deuteron hypotheses
+- Results visualised in the VAE latent space
+- Located in `kaons/chi2.ipynb`
+
+### 4. Bounding Box Reconstruction
+
+Custom C++ art producer module (`scripts/bboxReco/`) that filters TPC signals within per-event spatial regions defined by CSV, enabling clean isolated track reconstruction within the official LArIAT framework.
+
+## Setup
+
 ```bash
 pip install -r requirements.txt
 ```
+
+Key dependencies: PyTorch, TensorFlow/Keras, uproot, scikit-learn, scikit-image, pytorch-msssim, plotly, segment-anything.
+
+GPU acceleration supported via CUDA and MPS (macOS Metal).
