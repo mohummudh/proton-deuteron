@@ -34,9 +34,9 @@ autoencoder/             Deep learning models for dimensionality reduction and s
 ├── GAN.ipynb            Generative adversarial network experiments
 └── hyperparameters.ipynb Hyperparameter tuning
 
-kaons/                   Multi-particle classification (protons, kaons, deuterons)
+kaons/                   Classification for protons vs. kaons
 ├── chi2.ipynb           Chi-squared hypothesis testing with dE/dx vs residual range
-├── protons-kaons-vae    VAE for three-particle separation
+├── protons-kaons-vae    VAE for separation
 ├── kaons_clustering     Kaon track clustering
 └── data.ipynb           Kaon data preparation
 
@@ -57,7 +57,7 @@ analysis/                High-level results
 ├── protons.ipynb        Proton characterisation
 ├── deuterons.ipynb      Deuteron characterisation
 ├── both.ipynb           Combined analysis
-└── separation_limit     Theoretical separation limits
+└── separation_limit     Theoretical separation limits for proton/deuteron candidates in the data
 
 notebooks/               Exploratory work
 ├── chi2.ipynb           Chi-squared analysis (proton/deuteron)
@@ -67,8 +67,8 @@ notebooks/               Exploratory work
 ├── SAM.ipynb            Meta Segment Anything experiments
 └── NIST/                Theory comparisons (track length vs momentum)
 
-ssvd/                    Sparse autoencoder experiments
-├── sparse.ipynb         Sparse autoencoder training
+ssvd/                    SSVD + autoencoder experiments
+├── sparse.ipynb         SSVD autoencoder training
 ├── inference.ipynb      Model inference and scoring
 └── cnn_model.onnx       Exported ONNX model
 
