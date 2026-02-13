@@ -98,7 +98,7 @@ Trained on padded cluster images (normalised 0–1) to learn compressed represen
 - **Feedforward** — baseline, large reconstruction errors on muons
 - **1D CNN** — processes per-wire ADC as 1D sequences, improved over feedforward
 - **2D CNN** — operates on full wire×tick images, best reconstruction quality
-- **VAE** — variational autoencoder producing structured latent space; separation measured via Mahalanobis distance. Trained with MS-SSIM + VAE loss. Latent dimensions: 4–16
+- **VAE** — variational autoencoder producing structured latent space; separation measured via Mahalanobis distance/density mapping the protons. Trained with MS-SSIM + VAE loss. Latent dimensions: 4–16
 
 ### 3. Chi-Squared Particle ID
 
