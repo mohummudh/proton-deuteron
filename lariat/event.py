@@ -30,49 +30,38 @@ class Event():
     def load(self):
         """
         Load raw ADC data from ROOT file and organise into collection and induction plane matrices.
-        
-        Reads LArIAT raw digitized data from the specified ROOT file and event index,
-        then separates the 480 channels into collection plane (channels 240-479) and 
-        induction plane (channels 0-239) wire data.
-        
-        The method populates:
-            - self.collection: 2D numpy array (240 wires × time_ticks) for collection plane
-            - self.induction: 2D numpy array (240 wires × time_ticks) for induction plane
-        
-        Channel mapping:
-            - Channels 0-239: Induction plane wires
-            - Channels 240-479: Collection plane wires (mapped to indices 0-239)
-        
-        Raises:
-            FileNotFoundError: If the ROOT file path is invalid
-            KeyError: If expected tree structure is not found in ROOT file
-            IndexError: If event index is out of range
         """
 
         file = uproot.open(self.filepath)
         tree = file["ana/raw"]
-        event_data = tree.arrays(["run", "subrun", "event"], library="ak")
 
-        run = ak.to_numpy(event_data["run"])[self.index]
-        subrun = ak.to_numpy(event_data["subrun"])[self.index]
-        event = ak.to_numpy(event_data["event"])[self.index]
+        # Read exactly ONE entry (self.index) from the tree
+        arrays = tree.arrays(
+            ["raw_rawadc", "raw_channel"],
+            entry_start=self.index,
+            entry_stop=self.index + 1,
+            library="ak",
+        )
 
-        data = tree.arrays(["raw_rawadc", "raw_channel"], library="ak")[self.index]
-        adc_data = ak.to_numpy(data["raw_rawadc"])
-        channel_map = ak.to_numpy(data["raw_channel"])
+        # Extract flat ADC and channel map for this event
+        adc_data    = np.asarray(arrays["raw_rawadc"][0])
+        channel_map = np.asarray(arrays["raw_channel"][0])
 
-        num_channels_in_event = len(channel_map) # 480 - 240 in collection, 240 in induction - number of wires
-        num_ticks = len(adc_data) // num_channels_in_event
+        num_channels_in_event = len(channel_map)   # 480 wires total
+        num_ticks             = len(adc_data) // num_channels_in_event
+
         adc_data2d = adc_data.reshape((num_channels_in_event, num_ticks))
 
+        # Prepare plane matrices: shape (240 wires, num_ticks)
         self.collection = np.zeros((240, num_ticks))
-        self.induction = np.zeros((240, num_ticks))
+        self.induction  = np.zeros((240, num_ticks))
 
+        # Fill induction (0–239) and collection (240–479)
         for i, channel_num in enumerate(channel_map):
             if 0 <= channel_num < 240:
                 self.induction[channel_num, :] = adc_data2d[i, :]
-            if 240 <= channel_num < 480:
-                self.collection[channel_num - 240, :] = adc_data2d[i, :]          
+            elif 240 <= channel_num < 480:
+                self.collection[channel_num - 240, :] = adc_data2d[i, :]         
 
     def plot(self, collection=None, induction=None):
         """Plotting function, plots the collection and induction plane. 
